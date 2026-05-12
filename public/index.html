@@ -70,9 +70,9 @@
     .pg-title p{font-size:13px;color:var(--mid);margin-top:4px;line-height:1.55;}
 
     /* UPLOAD ZONE */
-    .upload-zone{border:1.5px dashed var(--light);border-radius:var(--r-lg);background:var(--white);min-height:210px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:border-color .15s;}
+    .upload-zone{border:1.5px dashed var(--light);border-radius:var(--r-lg);background:var(--white);min-height:210px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .15s;}
     .upload-zone:active{background:#FDF8EC;border-color:var(--gold);}
-    .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .upload-zone input{display:none;}
     .uz-ph{text-align:center;padding:2rem 1rem;pointer-events:none;}
     .uz-ph svg{width:42px;height:42px;stroke:var(--light);fill:none;stroke-width:1.3;display:block;margin:0 auto 12px;}
     .uz-ph p{font-size:14px;color:var(--mid);font-weight:500;}
@@ -228,15 +228,15 @@
         <p>Upload a garment photo — BUSANA AI will analyze and save it to the closet.</p>
       </div>
 
-      <div class="upload-zone" onclick="document.getElementById('admin-file').click()">
-        <input type="file" id="admin-file" accept="image/*" onchange="onAdminFile(event)"/>
+      <input type="file" id="admin-file" accept="image/*" onchange="onAdminFile(event)" style="display:none"/>
+      <label for="admin-file" class="upload-zone" id="admin-zone">
         <div class="uz-ph" id="admin-ph">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <p>Tap to upload garment</p>
-          <span>JPG or PNG · front-facing</span>
+          <p>Tap to choose from gallery</p>
+          <span>JPG or PNG · garment photo</span>
         </div>
         <img id="admin-prev" class="upload-preview" style="display:none"/>
-      </div>
+      </label>
       <button class="clear-btn" id="admin-clear" onclick="clearAdmin()" style="display:none">✕ Remove photo</button>
 
       <div class="form-block" id="admin-form" style="display:none">
@@ -285,15 +285,15 @@
         <p>Upload your photo, pick a garment from the closet, and see how it looks on you.</p>
       </div>
 
-      <div class="upload-zone" onclick="document.getElementById('user-file').click()">
-        <input type="file" id="user-file" accept="image/*" onchange="onUserFile(event)"/>
+      <input type="file" id="user-file" accept="image/*" onchange="onUserFile(event)" style="display:none"/>
+      <label for="user-file" class="upload-zone" id="user-zone">
         <div class="uz-ph" id="user-ph">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          <p>Tap to upload your photo</p>
-          <span>Full body or selfie · front-facing</span>
+          <p>Tap to choose your photo</p>
+          <span>Full body or selfie · from gallery</span>
         </div>
         <img id="user-prev" class="upload-preview" style="display:none"/>
-      </div>
+      </label>
       <button class="clear-btn" id="user-clear" onclick="clearUser()" style="display:none">✕ Remove photo</button>
 
       <div id="user-closet-sec" style="display:none">
@@ -372,18 +372,16 @@ function switchTab(t) {
 // ── ADMIN FILE ──
 function onAdminFile(e) {
   const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    S.adminImg = ev.target.result;
-    document.getElementById('admin-prev').src = ev.target.result;
+  resizeImage(f, (dataUrl) => {
+    S.adminImg = dataUrl;
+    document.getElementById('admin-prev').src = dataUrl;
     document.getElementById('admin-prev').style.display = 'block';
     document.getElementById('admin-ph').style.display = 'none';
     document.getElementById('admin-clear').style.display = 'inline-flex';
     document.getElementById('admin-form').style.display = 'block';
     const n = f.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
     document.getElementById('g-name').value = n.replace(/\b\w/g, c=>c.toUpperCase());
-  };
-  r.readAsDataURL(f);
+  });
 }
 function clearAdmin() {
   S.adminImg = null;
@@ -498,17 +496,15 @@ Return ONLY valid JSON with no markdown fences, no extra text, exactly this shap
 // ── USER FILE ──
 function onUserFile(e) {
   const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    S.userImg = ev.target.result;
-    document.getElementById('user-prev').src = ev.target.result;
+  resizeImage(f, (dataUrl) => {
+    S.userImg = dataUrl;
+    document.getElementById('user-prev').src = dataUrl;
     document.getElementById('user-prev').style.display = 'block';
     document.getElementById('user-ph').style.display = 'none';
     document.getElementById('user-clear').style.display = 'inline-flex';
     document.getElementById('user-closet-sec').style.display = 'block';
     renderPicker();
-  };
-  r.readAsDataURL(f);
+  });
 }
 function clearUser() {
   S.userImg = null; S.selectedId = null;
@@ -736,6 +732,34 @@ function mkError(msg) {
 function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── RESIZE IMAGE ──
+// Resizes large gallery photos to max 1024px and compresses to JPEG
+// Prevents silent failures when sending big phone photos to Gemini API
+function resizeImage(file, callback) {
+  const MAX = 1024;
+  const QUALITY = 0.85;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', QUALITY));
+    };
+    img.onerror = () => callback(ev.target.result);
+    img.src = ev.target.result;
+  };
+  reader.onerror = () => alert('Could not read image. Please try a different photo.');
+  reader.readAsDataURL(file);
 }
 </script>
 </body>
