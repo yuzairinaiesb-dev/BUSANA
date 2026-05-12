@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#111110"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="BUSANA"/>
+  <title>BUSANA</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold:#C9A84C; --gold-lt:#F5E9C4; --gold-dk:#8B6914;
+      --black:#111110; --dark:#1C1B19; --mid:#5C5A55;
+      --muted:#9A9890; --light:#E8E5DF; --lighter:#F4F2EE; --white:#FDFCFA;
+      --ok:#2D7A4F; --ok-bg:#E8F5EE;
+      --err:#C0392B; --err-bg:#FDECEA;
+      --info:#1A5FA5; --info-bg:#E8F0FB;
+      --r-sm:8px; --r-md:12px; --r-lg:18px;
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bot:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;overflow:hidden;background:var(--black);}
+    body{font-family:'DM Sans',sans-serif;color:var(--black);-webkit-font-smoothing:antialiased;}
+
+    /* SPLASH */
+    #splash{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;transition:opacity .6s;}
+    .sp-icon{width:84px;height:84px;background:var(--gold);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
+    .sp-icon svg{width:46px;height:46px;fill:var(--black);}
+    .sp-name{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:500;letter-spacing:.22em;color:var(--white);text-transform:uppercase;}
+    .sp-tag{font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-top:8px;}
+    .sp-powered{font-size:10px;color:rgba(201,168,76,.5);margin-top:6px;letter-spacing:.08em;}
+    .sp-dots{display:flex;gap:7px;margin-top:32px;}
+    .sp-dots span{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:spdot 1.4s infinite;}
+    .sp-dots span:nth-child(2){animation-delay:.2s;}
+    .sp-dots span:nth-child(3){animation-delay:.4s;}
+    @keyframes spdot{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+
+    /* APP SHELL */
+    #app{display:flex;flex-direction:column;height:100%;height:100dvh;}
+
+    /* HEADER */
+    .hdr{background:var(--black);padding:calc(var(--safe-top) + 10px) 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.18);flex-shrink:0;}
+    .hdr-left{display:flex;align-items:center;gap:10px;}
+    .hdr-icon{width:34px;height:34px;background:var(--gold);border-radius:9px;display:flex;align-items:center;justify-content:center;}
+    .hdr-icon svg{width:20px;height:20px;fill:var(--black);}
+    .hdr-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;letter-spacing:.2em;color:var(--white);text-transform:uppercase;}
+    .hdr-sub{font-size:9px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-top:1px;}
+    .hdr-gemini{font-size:9px;background:rgba(66,133,244,.15);color:#4285F4;padding:3px 8px;border-radius:999px;letter-spacing:.04em;font-weight:500;}
+
+    /* SCROLL */
+    .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--lighter);}
+    .panel{display:none;padding:16px 16px 40px;}
+    .panel.active{display:block;}
+
+    /* BOTTOM NAV */
+    .bnav{display:flex;background:var(--black);border-top:1px solid rgba(201,168,76,.12);padding-bottom:var(--safe-bot);flex-shrink:0;}
+    .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;border:none;background:none;cursor:pointer;color:var(--muted);font-size:10px;font-family:'DM Sans',sans-serif;letter-spacing:.04em;transition:color .15s;position:relative;}
+    .bnav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+    .bnav-btn.active{color:var(--gold);}
+    .bnav-badge{position:absolute;top:6px;right:calc(50% - 20px);background:var(--gold);color:var(--black);font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+
+    /* PAGE TITLE */
+    .pg-title{margin-bottom:18px;}
+    .pg-title h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-style:italic;font-weight:400;color:var(--black);}
+    .pg-title p{font-size:13px;color:var(--mid);margin-top:4px;line-height:1.55;}
+
+    /* UPLOAD ZONE */
+    .upload-zone{border:1.5px dashed var(--light);border-radius:var(--r-lg);background:var(--white);min-height:210px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:border-color .15s;}
+    .upload-zone:active{background:#FDF8EC;border-color:var(--gold);}
+    .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .uz-ph{text-align:center;padding:2rem 1rem;pointer-events:none;}
+    .uz-ph svg{width:42px;height:42px;stroke:var(--light);fill:none;stroke-width:1.3;display:block;margin:0 auto 12px;}
+    .uz-ph p{font-size:14px;color:var(--mid);font-weight:500;}
+    .uz-ph span{font-size:12px;color:var(--muted);display:block;margin-top:4px;}
+    .upload-preview{width:100%;max-height:300px;object-fit:contain;display:block;}
+    .clear-btn{margin-top:8px;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 0;font-family:'DM Sans',sans-serif;}
+    .clear-btn:active{color:var(--err);}
+
+    /* FORM */
+    .form-block{margin-top:18px;}
+    .form-lbl{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);margin-bottom:5px;display:block;}
+    .form-input{width:100%;padding:11px 13px;font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--light);border-radius:var(--r-md);background:var(--white);color:var(--black);outline:none;margin-bottom:12px;-webkit-appearance:none;}
+    .form-input:focus{border-color:var(--gold);}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+    /* BUTTONS */
+    .btn{width:100%;padding:14px;font-size:13px;font-weight:500;border:none;border-radius:var(--r-md);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif;-webkit-appearance:none;transition:opacity .15s;}
+    .btn:active{opacity:.8;}
+    .btn:disabled{opacity:.35;cursor:not-allowed;}
+    .btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .btn-dark{background:var(--black);color:var(--white);}
+    .btn-gold{background:var(--gold);color:var(--black);}
+
+    /* DIVIDER */
+    .divider{height:.5px;background:var(--light);margin:18px 0;}
+
+    /* CLOSET PICKER */
+    .picker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+    .picker-card{border:1.5px solid var(--light);border-radius:var(--r-md);overflow:hidden;background:var(--white);cursor:pointer;}
+    .picker-card:active{opacity:.85;}
+    .picker-card.selected{border-color:var(--gold);border-width:2.5px;}
+    .picker-thumb{width:100%;height:90px;object-fit:cover;display:block;background:var(--lighter);}
+    .picker-info{padding:5px 7px 8px;}
+    .picker-name{font-size:10px;font-weight:500;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .picker-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+
+    /* SELECTED CHIP */
+    .sel-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--gold-lt);border-radius:var(--r-md);background:#FDF8EC;padding:10px 12px;margin-top:12px;}
+    .sel-chip img{width:44px;height:54px;object-fit:cover;border-radius:6px;flex-shrink:0;}
+    .sel-chip-name{font-size:13px;font-weight:500;color:var(--black);}
+    .sel-chip-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+    .sel-chip-x{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:4px;}
+
+    /* RESULT CARD */
+    .result-card{border:1px solid var(--light);border-radius:var(--r-lg);overflow:hidden;background:var(--white);margin-top:18px;}
+    .result-head{padding:11px 15px;background:var(--black);display:flex;align-items:center;gap:7px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);}
+    .result-head svg{width:14px;height:14px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .result-body{padding:16px;}
+
+    /* COMPARE GRID */
+    .cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .cmp-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
+    .cmp-img{width:100%;height:150px;object-fit:cover;border-radius:var(--r-md);border:1px solid var(--light);display:block;}
+
+    /* CONFIDENCE BAR */
+    .conf-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+    .conf-lbl{font-size:12px;font-weight:500;color:var(--black);white-space:nowrap;}
+    .conf-track{flex:1;height:5px;background:var(--light);border-radius:999px;overflow:hidden;}
+    .conf-fill{height:100%;background:var(--gold);border-radius:999px;width:0%;transition:width 1.2s ease;}
+    .conf-pct{font-size:12px;font-weight:600;color:var(--gold-dk);white-space:nowrap;}
+
+    /* VERDICT */
+    .verdict{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:var(--black);padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--light);line-height:1.5;}
+
+    /* SECTIONS */
+    .sec-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:14px 0 5px;font-weight:500;}
+    .body-text{font-size:13px;line-height:1.75;color:var(--black);}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+    .info-box{padding:10px 12px;background:var(--lighter);border-radius:var(--r-sm);border:1px solid var(--light);}
+    .info-box-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;}
+    .info-box-val{font-size:12px;color:var(--black);font-weight:500;line-height:1.45;}
+    .tip-row{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--black);margin-bottom:7px;line-height:1.6;}
+    .tip-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px;}
+
+    /* ANALYSIS BOXES */
+    .an-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+    .an-box{padding:9px 11px;background:var(--lighter);border-radius:var(--r-sm);border:1px solid var(--light);}
+    .an-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px;}
+    .an-val{font-size:12px;color:var(--black);font-weight:500;line-height:1.4;}
+    .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+    .chip{font-size:11px;padding:3px 9px;border:1px solid var(--light);border-radius:999px;color:var(--mid);}
+    .chip-gold{border-color:var(--gold-lt);color:var(--gold-dk);background:#FDF8EC;}
+
+    /* FULL CLOSET */
+    .closet-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .closet-card{border:1px solid var(--light);border-radius:var(--r-lg);overflow:hidden;background:var(--white);}
+    .closet-thumb{width:100%;height:190px;object-fit:cover;display:block;background:var(--lighter);}
+    .closet-body{padding:11px 13px 13px;}
+    .closet-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:var(--black);}
+    .closet-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+    .closet-price{font-size:12px;font-weight:500;color:var(--gold);margin-top:3px;}
+    .closet-del{margin-top:9px;width:100%;padding:7px;font-size:11px;border:1px solid var(--light);border-radius:var(--r-sm);background:none;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px;}
+    .closet-del:active{border-color:var(--err);color:var(--err);background:var(--err-bg);}
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);}
+    .empty-state svg{width:44px;height:44px;stroke:var(--light);fill:none;stroke-width:1.3;display:block;margin:0 auto 12px;}
+    .empty-state p{font-size:13px;line-height:1.6;}
+
+    /* BANNERS */
+    .ok-banner{display:flex;align-items:flex-start;gap:10px;padding:13px 15px;background:var(--ok-bg);border:1px solid #A8D5BB;border-radius:var(--r-md);margin-top:14px;}
+    .ok-banner svg{width:20px;height:20px;stroke:var(--ok);fill:none;stroke-width:1.8;flex-shrink:0;margin-top:1px;}
+    .ok-title{font-size:13px;font-weight:500;color:var(--ok);}
+    .ok-sub{font-size:11px;color:var(--ok);opacity:.8;margin-top:2px;}
+    .err-banner{display:flex;align-items:flex-start;gap:8px;padding:12px 14px;background:var(--err-bg);border:1px solid #F5B7B1;border-radius:var(--r-md);font-size:13px;color:var(--err);margin-top:12px;line-height:1.5;}
+    .err-banner svg{width:16px;height:16px;stroke:var(--err);fill:none;stroke-width:1.8;flex-shrink:0;margin-top:2px;}
+
+    /* LOADER */
+    .loader-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:2.5rem 1rem;background:var(--white);border:1px solid var(--light);border-radius:var(--r-lg);margin-top:14px;text-align:center;}
+    .spinner{width:36px;height:36px;border:3px solid var(--light);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loader-text{font-size:13px;color:var(--mid);}
+    .loader-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+    /* POWERED BY badge */
+    .powered-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);padding:4px 10px;border:1px solid var(--light);border-radius:999px;background:var(--white);margin-top:10px;}
+    .powered-badge span{color:#4285F4;font-weight:500;}
+  </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-icon">
+    <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg>
+  </div>
+  <div class="sp-name">Busana</div>
+  <div class="sp-tag">Virtual Wardrobe · Try-On AI</div>
+  <div class="sp-powered">Powered by Google Gemini</div>
+  <div class="sp-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-icon">
+        <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg>
+      </div>
+      <div>
+        <div class="hdr-name">Busana</div>
+        <div class="hdr-sub">Virtual Wardrobe · Try-On AI</div>
+      </div>
+    </div>
+    <div class="hdr-gemini">Gemini AI</div>
+  </header>
+
+  <div class="scroll">
+
+    <!-- ADMIN PANEL -->
+    <div class="panel active" id="panel-admin">
+      <div class="pg-title">
+        <h1>Register garment</h1>
+        <p>Upload a garment photo — BUSANA AI will analyze and save it to the closet.</p>
+      </div>
+
+      <div class="upload-zone" onclick="document.getElementById('admin-file').click()">
+        <input type="file" id="admin-file" accept="image/*" onchange="onAdminFile(event)"/>
+        <div class="uz-ph" id="admin-ph">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <p>Tap to upload garment</p>
+          <span>JPG or PNG · front-facing</span>
+        </div>
+        <img id="admin-prev" class="upload-preview" style="display:none"/>
+      </div>
+      <button class="clear-btn" id="admin-clear" onclick="clearAdmin()" style="display:none">✕ Remove photo</button>
+
+      <div class="form-block" id="admin-form" style="display:none">
+        <label class="form-lbl">Garment name</label>
+        <input class="form-input" id="g-name" type="text" placeholder="e.g. Baju Melayu Songket"/>
+        <div class="form-row">
+          <div>
+            <label class="form-lbl">Category</label>
+            <select class="form-input" id="g-cat">
+              <option>Traditional</option>
+              <option>Formal</option>
+              <option>Casual</option>
+              <option>Festive</option>
+              <option>Bridal</option>
+              <option>Streetwear</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-lbl">Gender</label>
+            <select class="form-input" id="g-gender">
+              <option>Men</option>
+              <option>Women</option>
+              <option>Unisex</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-lbl">Origin / Cultural style</label>
+        <input class="form-input" id="g-origin" type="text" placeholder="e.g. Malay, Javanese, Minangkabau…"/>
+        <label class="form-lbl">Price (optional)</label>
+        <input class="form-input" id="g-price" type="text" placeholder="e.g. RM 350"/>
+        <button class="btn btn-dark" id="admin-btn" onclick="analyzeGarment()">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Analyze & register to closet
+        </button>
+        <div style="text-align:center">
+          <div class="powered-badge">Analyzed by <span>Google Gemini</span></div>
+        </div>
+        <div id="admin-result"></div>
+      </div>
+    </div>
+
+    <!-- TRY ON PANEL -->
+    <div class="panel" id="panel-user">
+      <div class="pg-title">
+        <h1>Virtual try-on</h1>
+        <p>Upload your photo, pick a garment from the closet, and see how it looks on you.</p>
+      </div>
+
+      <div class="upload-zone" onclick="document.getElementById('user-file').click()">
+        <input type="file" id="user-file" accept="image/*" onchange="onUserFile(event)"/>
+        <div class="uz-ph" id="user-ph">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <p>Tap to upload your photo</p>
+          <span>Full body or selfie · front-facing</span>
+        </div>
+        <img id="user-prev" class="upload-preview" style="display:none"/>
+      </div>
+      <button class="clear-btn" id="user-clear" onclick="clearUser()" style="display:none">✕ Remove photo</button>
+
+      <div id="user-closet-sec" style="display:none">
+        <div class="divider"></div>
+        <div class="form-lbl" style="margin-bottom:8px">Pick a garment from closet</div>
+        <div class="picker-grid" id="picker-grid"></div>
+        <div id="sel-chip-wrap"></div>
+        <button class="btn btn-gold" id="tryon-btn" onclick="doTryOn()" style="display:none;margin-top:14px;">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Try on now
+        </button>
+        <div style="text-align:center" id="tryon-powered" style="display:none">
+          <div class="powered-badge">Powered by <span>Google Gemini</span></div>
+        </div>
+      </div>
+      <div id="tryon-result"></div>
+    </div>
+
+    <!-- CLOSET PANEL -->
+    <div class="panel" id="panel-closet">
+      <div class="pg-title">
+        <h1>Busana closet</h1>
+        <p>All registered garments available for try-on.</p>
+      </div>
+      <div class="closet-grid" id="closet-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bnav">
+    <button class="bnav-btn active" id="nav-admin" onclick="switchTab('admin')">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin
+    </button>
+    <button class="bnav-btn" id="nav-user" onclick="switchTab('user')">
+      <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg>
+      Try On
+    </button>
+    <button class="bnav-btn" id="nav-closet" onclick="switchTab('closet')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Closet
+      <span class="bnav-badge" id="closet-badge" style="display:none">0</span>
+    </button>
+  </nav>
+
+</div>
+
+<script>
+const S = { closet:[], adminImg:null, userImg:null, selectedId:null };
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const sp = document.getElementById('splash');
+    sp.style.opacity = '0';
+    setTimeout(() => sp.style.display = 'none', 600);
+  }, 2000);
+  try { const d = localStorage.getItem('busana_closet'); if (d) S.closet = JSON.parse(d); } catch(e){}
+  refreshBadge();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+});
+
+function save() { localStorage.setItem('busana_closet', JSON.stringify(S.closet)); }
+
+// ── TABS ──
+function switchTab(t) {
+  ['admin','user','closet'].forEach(x => {
+    document.getElementById('panel-'+x).classList.toggle('active', x===t);
+    document.getElementById('nav-'+x).classList.toggle('active', x===t);
+  });
+  if (t==='user') renderPicker();
+  if (t==='closet') renderCloset();
+}
+
+// ── ADMIN FILE ──
+function onAdminFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    S.adminImg = ev.target.result;
+    document.getElementById('admin-prev').src = ev.target.result;
+    document.getElementById('admin-prev').style.display = 'block';
+    document.getElementById('admin-ph').style.display = 'none';
+    document.getElementById('admin-clear').style.display = 'inline-flex';
+    document.getElementById('admin-form').style.display = 'block';
+    const n = f.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
+    document.getElementById('g-name').value = n.replace(/\b\w/g, c=>c.toUpperCase());
+  };
+  r.readAsDataURL(f);
+}
+function clearAdmin() {
+  S.adminImg = null;
+  document.getElementById('admin-prev').style.display = 'none';
+  document.getElementById('admin-ph').style.display = 'block';
+  document.getElementById('admin-clear').style.display = 'none';
+  document.getElementById('admin-form').style.display = 'none';
+  document.getElementById('admin-file').value = '';
+  document.getElementById('admin-result').innerHTML = '';
+}
+
+// ── ANALYZE GARMENT ──
+async function analyzeGarment() {
+  if (!S.adminImg) return;
+  const name   = document.getElementById('g-name').value.trim() || 'Garment';
+  const cat    = document.getElementById('g-cat').value;
+  const gender = document.getElementById('g-gender').value;
+  const origin = document.getElementById('g-origin').value.trim();
+  const price  = document.getElementById('g-price').value.trim();
+
+  const btn = document.getElementById('admin-btn');
+  const res = document.getElementById('admin-result');
+  btn.disabled = true; btn.textContent = 'Analyzing…';
+  res.innerHTML = mkLoader('BUSANA AI is analyzing…', 'Powered by Google Gemini · identifying fabric, pattern, silhouette…');
+
+  try {
+    const { b64, mt } = splitImg(S.adminImg);
+    const prompt = `You are the BUSANA fashion AI. Analyze this garment image carefully.
+Provided info — Name: ${name} | Category: ${cat} | Gender: ${gender} | Origin: ${origin}
+
+Return ONLY valid JSON with no markdown fences, no extra text, exactly this shape:
+{
+  "confirmed_name": "refined display name for this garment",
+  "garment_type": "specific garment type",
+  "primary_color": "main color(s)",
+  "fabric": "fabric type or best guess",
+  "pattern": "pattern and motif description",
+  "silhouette": "silhouette and cut",
+  "key_features": ["feature1","feature2","feature3","feature4"],
+  "accessories_included": ["any visible accessories e.g. sash, hat, belt"],
+  "fit_profile": "how it fits on the body",
+  "occasion": "best occasions",
+  "styling_notes": "one sentence on how to style this",
+  "try_on_description": "2-3 sentences: how this garment looks and feels when worn — drape, movement, presence"
+}`;
+
+    const data = await callGemini(prompt, [{ data: b64, mimeType: mt }]);
+    const info = parseJSON(data.text);
+
+    const g = {
+      id: Date.now(),
+      name: info.confirmed_name || name,
+      type: info.garment_type || cat,
+      color: info.primary_color, fabric: info.fabric,
+      pattern: info.pattern, silhouette: info.silhouette,
+      features: info.key_features || [],
+      accessories: info.accessories_included || [],
+      fit: info.fit_profile, occasion: info.occasion,
+      styling: info.styling_notes, tryOn: info.try_on_description,
+      category: cat, gender, origin, price, img: S.adminImg,
+      date: new Date().toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})
+    };
+    S.closet.push(g); save(); refreshBadge();
+
+    res.innerHTML = `
+      <div class="ok-banner">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div>
+          <div class="ok-title">${esc(g.name)} registered to Busana closet!</div>
+          <div class="ok-sub">${esc(g.type)} · ${esc(g.color)} · ${esc(g.fabric)}</div>
+        </div>
+      </div>
+      <div class="result-card" style="margin-top:12px;">
+        <div class="result-head">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          AI analysis complete
+        </div>
+        <div class="result-body">
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;">
+            <img src="${g.img}" style="width:72px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #E8E5DF;flex-shrink:0;"/>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;">${esc(g.name)}</div>
+              <div style="font-size:11px;color:#9A9890;margin-top:3px;">${esc(g.gender)} · ${esc(g.category)}${g.origin?' · '+esc(g.origin):''}${g.price?' · '+esc(g.price):''}</div>
+            </div>
+          </div>
+          <div class="an-grid">
+            <div class="an-box"><div class="an-lbl">Color</div><div class="an-val">${esc(g.color)}</div></div>
+            <div class="an-box"><div class="an-lbl">Fabric</div><div class="an-val">${esc(g.fabric)}</div></div>
+            <div class="an-box"><div class="an-lbl">Silhouette</div><div class="an-val">${esc(g.silhouette)}</div></div>
+            <div class="an-box"><div class="an-lbl">Occasion</div><div class="an-val">${esc(g.occasion)}</div></div>
+          </div>
+          <div class="sec-title" style="margin-top:12px;">Pattern & details</div>
+          <div class="body-text" style="font-size:12px;">${esc(g.pattern)}</div>
+          <div class="chips" style="margin-top:10px;">
+            ${g.features.map(f=>`<span class="chip chip-gold">${esc(f)}</span>`).join('')}
+            ${g.accessories.map(a=>`<span class="chip">${esc(a)}</span>`).join('')}
+          </div>
+          <div class="sec-title" style="margin-top:14px;">Try-on preview</div>
+          <div class="body-text" style="font-size:12px;font-style:italic;">${esc(g.tryOn)}</div>
+        </div>
+      </div>`;
+
+    clearAdmin();
+    ['g-name','g-origin','g-price'].forEach(id => document.getElementById(id).value='');
+  } catch(err) {
+    res.innerHTML = mkError(err.message);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Analyze & register to closet';
+}
+
+// ── USER FILE ──
+function onUserFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    S.userImg = ev.target.result;
+    document.getElementById('user-prev').src = ev.target.result;
+    document.getElementById('user-prev').style.display = 'block';
+    document.getElementById('user-ph').style.display = 'none';
+    document.getElementById('user-clear').style.display = 'inline-flex';
+    document.getElementById('user-closet-sec').style.display = 'block';
+    renderPicker();
+  };
+  r.readAsDataURL(f);
+}
+function clearUser() {
+  S.userImg = null; S.selectedId = null;
+  document.getElementById('user-prev').style.display = 'none';
+  document.getElementById('user-ph').style.display = 'block';
+  document.getElementById('user-clear').style.display = 'none';
+  document.getElementById('user-file').value = '';
+  document.getElementById('user-closet-sec').style.display = 'none';
+  document.getElementById('tryon-result').innerHTML = '';
+}
+
+// ── PICKER ──
+function renderPicker() {
+  const el = document.getElementById('picker-grid');
+  if (!S.closet.length) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg>
+      <p>No garments yet.<br/>Go to Admin to add some.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = S.closet.map(g => `
+    <div class="picker-card${S.selectedId===g.id?' selected':''}" onclick="selectG(${g.id})">
+      <img src="${g.img}" class="picker-thumb" alt="${esc(g.name)}"/>
+      <div class="picker-info">
+        <div class="picker-name">${esc(g.name)}</div>
+        <div class="picker-sub">${esc(g.gender)} · ${esc(g.category)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function selectG(id) {
+  S.selectedId = id;
+  renderPicker();
+  const g = S.closet.find(x => x.id===id);
+  if (!g) return;
+  document.getElementById('sel-chip-wrap').innerHTML = `
+    <div class="sel-chip">
+      <img src="${g.img}" alt="${esc(g.name)}"/>
+      <div>
+        <div class="sel-chip-name">${esc(g.name)}</div>
+        <div class="sel-chip-sub">${esc(g.gender)} · ${esc(g.category)}${g.price?' · '+esc(g.price):''}</div>
+      </div>
+      <button class="sel-chip-x" onclick="clearSel()">✕</button>
+    </div>`;
+  document.getElementById('tryon-btn').style.display = S.userImg ? 'flex' : 'none';
+}
+
+function clearSel() {
+  S.selectedId = null;
+  document.getElementById('sel-chip-wrap').innerHTML = '';
+  document.getElementById('tryon-btn').style.display = 'none';
+  renderPicker();
+}
+
+// ── TRY ON ──
+async function doTryOn() {
+  const g = S.closet.find(x => x.id===S.selectedId);
+  if (!g || !S.userImg) return;
+
+  const btn = document.getElementById('tryon-btn');
+  const res = document.getElementById('tryon-result');
+  btn.disabled = true; btn.textContent = 'Processing…';
+  res.innerHTML = mkLoader('BUSANA AI is styling you…', 'Powered by Google Gemini · analyzing fit, colors, proportions…');
+
+  try {
+    const u = splitImg(S.userImg);
+    const gImg = splitImg(g.img);
+
+    const prompt = `You are the BUSANA virtual try-on AI for Southeast Asian traditional fashion.
+Image 1 = the customer's photo.
+Image 2 = the garment: "${g.name}" (${g.type}, ${g.color}, ${g.fit}, ${g.fabric}).
+
+Analyze both images and return ONLY valid JSON with no markdown fences:
+{
+  "fit_assessment": "how this garment fits this person's body type and proportions (2 sentences)",
+  "visual_result": "vivid, specific description of how this person would look wearing this garment — colors against their skin tone, how the silhouette frames their body, overall impression (3 sentences)",
+  "color_harmony": "how the garment colors work with this person's complexion",
+  "style_tips": ["specific tip 1", "specific tip 2", "specific tip 3"],
+  "accessories_suggestion": "complete accessories to finish the look",
+  "footwear": "footwear recommendation",
+  "size_recommendation": "recommended size S/M/L/XL with brief reason",
+  "alteration_notes": "any fit adjustments that would help",
+  "confidence_score": 86,
+  "overall_verdict": "one compelling sentence about this match"
+}`;
+
+    const data = await callGemini(prompt, [
+      { data: u.b64, mimeType: u.mt },
+      { data: gImg.b64, mimeType: gImg.mt }
+    ]);
+    const t = parseJSON(data.text);
+    const pct = Math.min(100, Math.max(0, Math.round(t.confidence_score || 82)));
+
+    res.innerHTML = `
+      <div class="result-card">
+        <div class="result-head">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Busana try-on result
+        </div>
+        <div class="result-body">
+          <div class="cmp-grid">
+            <div>
+              <div class="cmp-lbl">Your photo</div>
+              <img src="${S.userImg}" class="cmp-img"/>
+            </div>
+            <div>
+              <div class="cmp-lbl">${esc(g.name)}</div>
+              <img src="${g.img}" class="cmp-img"/>
+            </div>
+          </div>
+          <div class="conf-row">
+            <span class="conf-lbl">Match</span>
+            <div class="conf-track"><div class="conf-fill" id="cfill"></div></div>
+            <span class="conf-pct">${pct}%</span>
+          </div>
+          ${t.overall_verdict ? `<div class="verdict">"${esc(t.overall_verdict)}"</div>` : ''}
+          <div class="sec-title">How you'd look</div>
+          <div class="body-text">${esc(t.visual_result)}</div>
+          <div class="sec-title">Fit assessment</div>
+          <div class="body-text">${esc(t.fit_assessment)}</div>
+          <div class="sec-title">Color harmony</div>
+          <div class="body-text">${esc(t.color_harmony)}</div>
+          <div class="info-grid">
+            <div class="info-box"><div class="info-box-lbl">Recommended size</div><div class="info-box-val">${esc(t.size_recommendation)}</div></div>
+            <div class="info-box"><div class="info-box-lbl">Footwear</div><div class="info-box-val">${esc(t.footwear)}</div></div>
+            <div class="info-box" style="grid-column:1/-1;"><div class="info-box-lbl">Accessories</div><div class="info-box-val">${esc(t.accessories_suggestion)}</div></div>
+          </div>
+          <div class="sec-title">Style tips</div>
+          ${(t.style_tips||[]).map(tp=>`<div class="tip-row"><div class="tip-dot"></div><span>${esc(tp)}</span></div>`).join('')}
+          ${t.alteration_notes ? `<div class="sec-title">Alteration notes</div><div class="body-text" style="font-style:italic;font-size:12px;">${esc(t.alteration_notes)}</div>` : ''}
+          <div style="text-align:center;margin-top:14px;">
+            <div class="powered-badge">Powered by <span>Google Gemini</span></div>
+          </div>
+        </div>
+      </div>`;
+
+    setTimeout(() => {
+      const f = document.getElementById('cfill');
+      if (f) f.style.width = pct + '%';
+    }, 120);
+
+  } catch(err) {
+    res.innerHTML = mkError(err.message);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Try on now';
+}
+
+// ── FULL CLOSET ──
+function renderCloset() {
+  const el = document.getElementById('closet-grid');
+  if (!S.closet.length) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg>
+      <p>No garments yet.<br/>Go to Admin to register some.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = S.closet.map(g => `
+    <div class="closet-card">
+      <img src="${g.img}" class="closet-thumb" alt="${esc(g.name)}"/>
+      <div class="closet-body">
+        <div class="closet-name">${esc(g.name)}</div>
+        <div class="closet-sub">${esc(g.type)} · ${esc(g.gender)}</div>
+        ${g.price ? `<div class="closet-price">${esc(g.price)}</div>` : ''}
+        <button class="closet-del" onclick="delG(${g.id})">✕ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function delG(id) {
+  if (!confirm('Remove this garment from Busana closet?')) return;
+  S.closet = S.closet.filter(g => g.id !== id);
+  save(); refreshBadge(); renderCloset();
+}
+
+// ── UTILS ──
+function refreshBadge() {
+  const n = S.closet.length;
+  const b = document.getElementById('closet-badge');
+  b.textContent = n;
+  b.style.display = n > 0 ? 'flex' : 'none';
+}
+
+async function callGemini(prompt, images) {
+  const r = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, images })
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || `Error ${r.status}`);
+  return d;
+}
+
+function splitImg(dataUrl) {
+  return {
+    b64: dataUrl.split(',')[1],
+    mt: dataUrl.split(';')[0].split(':')[1]
+  };
+}
+
+function parseJSON(text) {
+  const clean = text.replace(/```json|```/g, '').trim();
+  // Find JSON object in response
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('Invalid AI response. Please try again.');
+  return JSON.parse(clean.slice(start, end + 1));
+}
+
+function mkLoader(txt, sub) {
+  return `<div class="loader-wrap"><div class="spinner"></div><div><div class="loader-text">${txt}</div><div class="loader-sub">${sub}</div></div></div>`;
+}
+
+function mkError(msg) {
+  let friendly = msg || 'Something went wrong. Please try again.';
+  if (friendly.includes('API_KEY') || friendly.includes('key')) friendly = 'API key issue. Please check server configuration.';
+  if (friendly.includes('quota') || friendly.includes('429')) friendly = 'Free quota reached. Wait a moment and try again.';
+  if (friendly.includes('SAFETY')) friendly = 'Image was blocked by safety filters. Please try a different photo.';
+  return `<div class="err-banner"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${esc(friendly)}</div>`;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

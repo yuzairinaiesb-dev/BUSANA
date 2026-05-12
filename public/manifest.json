@@ -1,0 +1,13 @@
+{
+  "name": "BUSANA — Virtual Try-On",
+  "short_name": "BUSANA",
+  "description": "Virtual wardrobe and AI try-on for traditional fashion",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111110",
+  "theme_color": "#111110",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

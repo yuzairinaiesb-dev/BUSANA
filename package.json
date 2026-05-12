@@ -1,0 +1,12 @@
+{
+  "name": "busana-gemini",
+  "version": "1.0.0",
+  "description": "BUSANA Virtual Try-On — powered by Google Gemini (free)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
